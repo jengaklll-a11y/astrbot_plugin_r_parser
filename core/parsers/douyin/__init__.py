@@ -2,7 +2,6 @@ import re
 from typing import ClassVar
 
 import msgspec
-from aiohttp import TCPConnector
 
 from astrbot.api import logger
 from astrbot.core.config.astrbot_config import AstrBotConfig
@@ -66,10 +65,7 @@ class DouyinParser(BaseParser):
 
     async def parse_video(self, url: str):
         async with self.client.get(
-            url,
-            headers=self.ios_headers,
-            allow_redirects=False,
-            connector=TCPConnector(ssl=False),
+            url, headers=self.ios_headers, allow_redirects=False, ssl=False
         ) as resp:
             if resp.status != 200:
                 raise ParseException(f"status: {resp.status}")
@@ -117,10 +113,7 @@ class DouyinParser(BaseParser):
             "request_source": "200",
         }
         async with self.client.get(
-            url,
-            params=params,
-            headers=self.android_headers,
-            connector=TCPConnector(ssl=False),
+            url, params=params, headers=self.android_headers, ssl=False
         ) as resp:
             resp.raise_for_status()
 

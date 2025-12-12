@@ -18,6 +18,7 @@ from astrbot.core import AstrBotConfig
 from astrbot.core.message.components import (
     At,
     BaseMessageComponent,
+    File,
     Forward,
     Image,
     Json,
@@ -37,6 +38,7 @@ from .core.parsers import (
     BaseParser,
     BilibiliParser,
     DynamicContent,
+    FileContent,
     GraphicsContent,
     ImageContent,
     ParseResult,
@@ -159,10 +161,15 @@ class ParserPlugin(Star):
                 continue
 
             match cont:
+                case FileContent():
+                    segs.append(File(name=path.name, file=str(path)))
                 case VideoContent() | DynamicContent():
                     segs.append(Video(str(path)))
                 case AudioContent():
-                    segs.append(Record(str(path)))
+                    if self.config["audio_to_file"]:
+                        segs.append(File(name=path.name, file=str(path)))
+                    else:
+                        segs.append(Record(str(path)))
                 case ImageContent():
                     segs.append(Image(str(path)))
                 case GraphicsContent() as g:
@@ -207,9 +214,26 @@ class ParserPlugin(Star):
         if umo in self.config["disabled_sessions"]:
             return
 
+        # 消息链
         chain = event.get_messages()
         if not chain:
             return
+
+        # 抢断机制
+        if self.config["enable_tackle"]:
+            if any(
+                isinstance(seg, Video | Record | File | Nodes | Node | Forward)
+                for seg in chain
+            ):
+                old_task = self.running_tasks.pop(umo, None)
+                if old_task and not old_task.done():
+                    old_task.cancel()
+                    sender_name = event.get_sender_name()
+                    sender_id = event.get_sender_id()
+                    logger.warning(
+                        f"[抢断机制] 检测到{sender_name}({sender_id})已完成解析，当前会话的解析任务取消"
+                    )
+                return
 
         seg1 = chain[0]
         text = event.message_str
@@ -265,15 +289,6 @@ class ParserPlugin(Star):
             session_history[link] = current_time
 
         logger.debug(f"匹配结果: {keyword}, {searched}")
-
-        # 抢断机制
-        if self.config["enable_tackle"]:
-            if any(isinstance(seg, Video | Record | Nodes | Node | Forward) for seg in chain):
-                old_task = self.running_tasks.pop(umo, None)
-                if old_task and not old_task.done():
-                    old_task.cancel()
-                    logger.warning(f"[抢断机制] 检测到媒体消息，已取消会话 {umo} 的解析任务")
-                return
 
         async def job() -> list[BaseMessageComponent]:
             parse_res = await self.parser_map[keyword].parse(keyword, searched)  # 解析

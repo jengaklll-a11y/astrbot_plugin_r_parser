@@ -19,7 +19,8 @@
             "NGA",
             "TikTok",
             "推特",
-            "油管"
+            "油管",
+            "网易云"
         ],
         "default": [
             "A站",
@@ -43,26 +44,8 @@
     "enable_tackle": {
         "description": "抢断机制",
         "type": "bool",
-        "hint": "抢断机制：多个 Bot 同时收到同一条链接消息，解析速度不同，谁先发出“视频/音频/转发”内容，谁就算“抢答成功”，其他 Bot 必须立刻停止解析",
+        "hint": "抢断机制：多个 Bot 同时收到同一条链接消息，解析速度不同，谁先发出“视频/音频/转发”内容，谁就算“抢答成功”，其他 Bot 必须立刻停止解析。  非常建议开启此机制！！ 可有效防止同一条链接被多个Bot反复解析。",
         "default": true
-    },
-    "forward_threshold": {
-        "description": "转发阈值",
-        "type": "int",
-        "hint": "解析生成的消息达到此阈值时，将消息合并转发",
-        "default": 2
-    },
-    "simple_mode": { 
-        "description": "简洁模式",
-        "type": "bool",
-        "hint": "简洁模式下，当解析出任何媒体内容后，不再进一步渲染卡片",
-        "default": true
-    },
-    "upload_audio": {
-        "description": "上传音频文件",
-        "type": "bool",
-        "hint": "是否将解析到的音频文件上传到群文件",
-        "default": false
     },
     "max_size": {
         "description": "资源最大大小",
@@ -75,6 +58,24 @@
         "type": "int",
         "hint": "允许下载的音视频最大时长，单位秒",
         "default": 480
+    },
+    "audio_to_file": {
+        "description": "音频以文件形式上传",
+        "type": "bool",
+        "hint": "是否将解析到的音频文件用文件形式上传，而不是语音形式",
+        "default": true
+    },
+    "forward_threshold": {
+        "description": "转发阈值",
+        "type": "int",
+        "hint": "解析生成的消息条数达到此阈值时，将消息合并转发",
+        "default": 2
+    },
+    "simple_mode": {
+        "description": "简洁模式",
+        "type": "bool",
+        "hint": "简洁模式下，当解析出任何媒体内容后，不再进一步渲染卡片",
+        "default": true
     },
     "download_timeout": {
         "description": "下载请求超时时间",

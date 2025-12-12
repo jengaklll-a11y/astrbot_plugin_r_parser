@@ -6,6 +6,7 @@ from .data import (
     AudioContent,
     Author,
     DynamicContent,
+    FileContent,
     GraphicsContent,
     ImageContent,
     ParseResult,
@@ -14,6 +15,7 @@ from .data import (
 )
 from .douyin import DouyinParser
 from .kuaishou import KuaiShouParser
+from .ncm import NCMParser
 from .nga import NGAParser
 from .tiktok import TikTokParser
 from .twitter import TwitterParser
@@ -26,6 +28,7 @@ __all__ = [
     "AudioContent",
     "Author",
     "DynamicContent",
+    "FileContent",
     "GraphicsContent",
     "ImageContent",
     "ParseResult",
@@ -39,6 +42,7 @@ __all__ = [
     "BilibiliParser",
     "DouyinParser",
     "KuaiShouParser",
+    "NCMParser",
     "NGAParser",
     "TikTokParser",
     "TwitterParser",

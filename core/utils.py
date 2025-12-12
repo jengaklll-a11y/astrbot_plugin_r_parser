@@ -107,7 +107,9 @@ async def merge_av_h264(
         a_path (Path): 音频文件路径
         output_path (Path): 输出文件路径
     """
-    logger.info(f"Merging {v_path.name} and {a_path.name} to {output_path.name} with H.264")
+    logger.info(
+        f"Merging {v_path.name} and {a_path.name} to {output_path.name} with H.264"
+    )
 
     # 修改命令以确保视频使用 H.264 编码
     cmd = [
@@ -198,7 +200,6 @@ def generate_file_name(url: str, default_suffix: str = "") -> str:
     return file_name
 
 
-
 def save_cookies_with_netscape(cookies_str: str, file_path: Path, domain: str):
     """以 netscape 格式保存 cookies
 
@@ -278,6 +279,7 @@ def extract_json_url(data: dict | str) -> str | None:
         return None
 
     for key1, key2 in (
+        ("music", "musicUrl"),
         ("detail_1", "qqdocurl"),
         ("news", "jumpUrl"),
         ("music", "jumpUrl"),
@@ -285,3 +287,34 @@ def extract_json_url(data: dict | str) -> str | None:
         if url := meta.get(key1, {}).get(key2):
             return url
     return None
+
+
+data = {
+    "app": "com.tencent.music.lua",
+    "bizsrc": "qqconnect.sdkshare_music",
+    "config": {
+        "ctime": 1765518617,
+        "forward": 1,
+        "token": "c822a760f0ec618affe6c925974873c4",
+        "type": "normal",
+    },
+    "extra": {"app_type": 1, "appid": 100495085, "uin": 3264925726},
+    "meta": {
+        "music": {
+            "app_type": 1,
+            "appid": 100495085,
+            "ctime": 1765518617,
+            "desc": "WOVOP",
+            "jumpUrl": "https://music.163.com/#/song?id=1962602640",
+            "musicUrl": "http://m701.music.126.net/20251212141517/64ae08f32869b452448fabe043b3b948/jdymusic/obj/wo3DlMOGwrbDjj7DisKw/15567602710/27ec/0200/d41b/6acb3be2dd8602f25e2332e0f3246014.mp3",
+            "preview": "https://p2.music.126.net/Atb91zHjpmraNZE7BHdtMA==/109951167646461688.jpg",
+            "tag": "网易云音乐",
+            "tagIcon": "https://i.gtimg.cn/open/app_icon/00/49/50/85/100495085_100_m.png",
+            "title": "听雨",
+            "uin": 3264925726,
+        }
+    },
+    "prompt": "[分享]听雨",
+    "ver": "0.0.0.1",
+    "view": "music",
+}

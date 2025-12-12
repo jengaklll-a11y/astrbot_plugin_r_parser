@@ -35,6 +35,14 @@ class AudioContent(MediaContent):
 
 
 @dataclass(repr=False, slots=True)
+class FileContent(MediaContent):
+    """文件内容"""
+
+    name: str | None = None
+    """文件名"""
+
+
+@dataclass(repr=False, slots=True)
 class VideoContent(MediaContent):
     """视频内容"""
 
@@ -194,6 +202,10 @@ class ParseResult:
         return [cont for cont in self.contents if isinstance(cont, AudioContent)]
 
     @property
+    def file_contents(self) -> list[FileContent]:
+        return [cont for cont in self.contents if isinstance(cont, FileContent)]
+
+    @property
     def dynamic_contents(self) -> list[DynamicContent]:
         return [cont for cont in self.contents if isinstance(cont, DynamicContent)]
 
@@ -212,7 +224,11 @@ class ParseResult:
     @property
     def formatted_datetime(self, fmt: str = "%Y-%m-%d %H:%M:%S") -> str | None:
         """格式化时间戳"""
-        return datetime.fromtimestamp(self.timestamp).strftime(fmt) if self.timestamp is not None else None
+        return (
+            datetime.fromtimestamp(self.timestamp).strftime(fmt)
+            if self.timestamp is not None
+            else None
+        )
 
     def __repr__(self) -> str:
         return (
@@ -227,7 +243,6 @@ class ParseResult:
             f"repost: <<<<<<<{self.repost}>>>>>>, "
             f"render_image: {self.render_image.name if self.render_image else 'None'}"
         )
-
 
 
 class ParseResultKwargs(TypedDict, total=False):

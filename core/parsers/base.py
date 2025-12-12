@@ -7,7 +7,7 @@ from pathlib import Path
 from re import Match, Pattern, compile
 from typing import TYPE_CHECKING, Any, ClassVar, TypeVar, cast
 
-from aiohttp import ClientError, ClientSession, ClientTimeout, TCPConnector
+from aiohttp import ClientError, ClientSession, ClientTimeout
 from typing_extensions import Unpack
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
@@ -109,10 +109,7 @@ class BaseParser:
     def get_session(cls, timeout: float = 30) -> ClientSession:
         """取全局单例，首次调用时创建"""
         if cls._session is None or cls._session.closed:
-            cls._session = ClientSession(
-                connector=TCPConnector(ssl=False),
-                timeout=ClientTimeout(total=timeout),
-            )
+            cls._session = ClientSession(timeout=ClientTimeout(total=timeout))
         return cls._session
 
     @classmethod
@@ -166,7 +163,6 @@ class BaseParser:
         """构建解析结果"""
         return ParseResult(platform=cls.platform, **kwargs)
 
-
     async def get_redirect_url(
         self,
         url: str,
@@ -187,9 +183,7 @@ class BaseParser:
     ) -> str:
         """获取重定向后的 URL, 允许多次重定向"""
         headers = headers or COMMON_HEADER.copy()
-        async with self.client.get(
-            url, headers=headers, allow_redirects=True
-        ) as resp:
+        async with self.client.get(url, headers=headers, allow_redirects=True) as resp:
             if resp.status >= 400:
                 raise ClientError(f"final url check {resp.status} {resp.reason}")
             return str(resp.url)
@@ -284,4 +278,16 @@ class BaseParser:
         image_task = self.downloader.download_img(image_url, ext_headers=self.headers)
         return GraphicsContent(image_task, text, alt)
 
+    def create_file_content(
+        self,
+        url_or_task: str | Task[Path],
+    ):
+        """创建文件内容"""
+        from .data import FileContent
 
+        if isinstance(url_or_task, str):
+            url_or_task = self.downloader.download_audio(
+                url_or_task, ext_headers=self.headers
+            )
+
+        return FileContent(url_or_task)
