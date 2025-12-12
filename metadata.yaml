@@ -1,5 +1,5 @@
 name: astrbot_plugin_parser # 这是你的插件的唯一识别名。
-display_name: 链接解析器
+display_name: 万能解析器
 desc: 高性能低耦合的万能链接解析器。支持的类型：视频、图集、音频。 支持的平台：A站、B站、抖音、tiktok、微博、小红书、快手、油管、推特...
 help: 略  # 插件的帮助信息
 version: v1.0.1 # 插件版本号。格式：v1.1.1 或者 v1.1
