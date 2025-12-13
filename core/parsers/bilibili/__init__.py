@@ -14,17 +14,15 @@ from msgspec import convert
 from astrbot.api import logger
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ...data import ImageContent, MediaContent, Platform
+from ...exception import DownloadException, DurationLimitException
 from ...utils import ck2dict
 from ..base import (
     BaseParser,
     Downloader,
-    DownloadException,
-    DurationLimitException,
     ParseException,
-    PlatformEnum,
     handle,
 )
-from ..data import ImageContent, MediaContent, Platform
 
 # 选择客户端
 select_client("curl_cffi")
@@ -35,7 +33,7 @@ request_settings.set("impersonate", "chrome131")
 
 class BilibiliParser(BaseParser):
     # 平台信息
-    platform: ClassVar[Platform] = Platform(name=PlatformEnum.BILIBILI, display_name="B站")
+    platform: ClassVar[Platform] = Platform(name="bilibili", display_name="B站")
 
     def __init__(self, config: AstrBotConfig, downloader: Downloader):
         super().__init__(config, downloader)

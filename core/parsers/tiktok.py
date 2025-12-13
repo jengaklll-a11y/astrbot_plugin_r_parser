@@ -3,9 +3,9 @@ from typing import ClassVar
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ..data import Author, Platform, VideoContent
 from ..download import Downloader
 from .base import BaseParser, handle
-from .data import Author, Platform, VideoContent
 
 
 class TikTokParser(BaseParser):

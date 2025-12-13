@@ -5,9 +5,9 @@ from aiohttp import ClientError
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ..data import Platform
 from ..download import Downloader
 from .base import BaseParser, handle
-from .data import Platform
 
 
 class NCMParser(BaseParser):

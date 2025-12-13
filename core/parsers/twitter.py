@@ -7,10 +7,10 @@ from bs4 import BeautifulSoup, Tag
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ..data import ParseResult, Platform
 from ..download import Downloader
 from ..exception import ParseException
 from .base import BaseParser, handle
-from .data import ParseResult, Platform
 
 
 class TwitterParser(BaseParser):

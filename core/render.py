@@ -12,7 +12,7 @@ from PIL import Image, ImageDraw, ImageFont
 from astrbot.api import logger
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
-from .parsers import GraphicsContent, ParseResult
+from .data import GraphicsContent, ParseResult
 
 # 定义类型变量
 P = ParamSpec("P")
@@ -223,7 +223,7 @@ class RenderContext:
     """当前绘制位置（绘制阶段使用）"""
 
 
-class CommonRenderer:
+class Renderer:
     """统一的渲染器，将解析结果转换为消息"""
 
     # 卡片配置常量

@@ -11,14 +11,13 @@ from ..base import (
     Downloader,
     ParseException,
     Platform,
-    PlatformEnum,
     handle,
 )
 
 
 class DouyinParser(BaseParser):
     # 平台信息
-    platform: ClassVar[Platform] = Platform(name=PlatformEnum.DOUYIN, display_name="抖音")
+    platform: ClassVar[Platform] = Platform(name="douyin", display_name="抖音")
 
     def __init__(self, config: AstrBotConfig, downloader: Downloader):
         super().__init__(config, downloader)

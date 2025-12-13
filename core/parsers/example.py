@@ -5,9 +5,9 @@ from aiohttp import ClientError
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ..data import Platform
 from ..download import Downloader
 from .base import BaseParser, handle
-from .data import Platform
 
 """
 这是一个示例解析器，请感兴趣的开发者自行实现解析器，并提交PR。

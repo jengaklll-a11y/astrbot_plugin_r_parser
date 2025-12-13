@@ -10,9 +10,9 @@ from msgspec import Struct
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ..data import MediaContent
 from ..download import Downloader
 from .base import BaseParser, ParseException, Platform, handle
-from .data import MediaContent
 
 
 class WeiBoParser(BaseParser):

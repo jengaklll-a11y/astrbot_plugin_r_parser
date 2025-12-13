@@ -13,14 +13,9 @@ from typing_extensions import Unpack
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
 from ..constants import ANDROID_HEADER, COMMON_HEADER, IOS_HEADER
+from ..data import ParseResult, ParseResultKwargs, Platform
 from ..download import Downloader
-from ..exception import DownloadException as DownloadException
-from ..exception import DurationLimitException as DurationLimitException
-from ..exception import ParseException as ParseException
-from ..exception import SizeLimitException as SizeLimitException
-from ..exception import TipException as TipException
-from ..exception import ZeroSizeException as ZeroSizeException
-from .data import ParseResult, ParseResultKwargs, Platform
+from ..exception import ParseException
 
 T = TypeVar("T", bound="BaseParser")
 HandlerFunc = Callable[[T, Match[str]], Coroutine[Any, Any, ParseResult]]

@@ -31,21 +31,23 @@ from astrbot.core.message.components import (
 from astrbot.core.platform.astr_message_event import AstrMessageEvent
 
 from .core.clean import CacheCleaner
-from .core.download import Downloader
-from .core.exception import DownloadException, DownloadLimitException, ZeroSizeException
-from .core.parsers import (
+from .core.data import (
     AudioContent,
-    BaseParser,
-    BilibiliParser,
     DynamicContent,
     FileContent,
     GraphicsContent,
     ImageContent,
     ParseResult,
     VideoContent,
+)
+from .core.download import Downloader
+from .core.exception import DownloadException, DownloadLimitException, ZeroSizeException
+from .core.parsers import (
+    BaseParser,
+    BilibiliParser,
     YouTubeParser,
 )
-from .core.render import CommonRenderer
+from .core.render import Renderer
 from .core.utils import extract_json_url, save_cookies_with_netscape
 
 
@@ -73,7 +75,7 @@ class ParserPlugin(Star):
         self.key_pattern_list: list[tuple[str, re.Pattern[str]]] = []
 
         # 渲染器
-        self.renderer = CommonRenderer(config)
+        self.renderer = Renderer(config)
 
         # 下载器
         self.downloader = Downloader(config)
@@ -102,7 +104,7 @@ class ParserPlugin(Star):
             self.config["ytb_cookies_file"] = str(ytb_cookies_file)
             self.config.save_config()
         # 加载资源
-        await asyncio.to_thread(CommonRenderer.load_resources)
+        await asyncio.to_thread(Renderer.load_resources)
         # 注册解析器
         self.register_parser()
 

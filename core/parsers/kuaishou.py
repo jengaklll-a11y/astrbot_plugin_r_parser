@@ -7,9 +7,9 @@ from msgspec import Struct, field
 
 from astrbot.core.config.astrbot_config import AstrBotConfig
 
+from ..data import Platform
 from ..download import Downloader
 from .base import BaseParser, ParseException, handle
-from .data import Platform
 
 
 class KuaiShouParser(BaseParser):
