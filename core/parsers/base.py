@@ -81,6 +81,12 @@ class BaseParser:
         self.android_headers = ANDROID_HEADER.copy()
         self.config = config
         self.downloader = downloader
+        # Proxy only applies to YouTube and TikTok as per configuration
+        proxy_enabled_platforms = ["youtube", "tiktok"]
+        if self.__class__.platform.name in proxy_enabled_platforms:
+            self.proxy = config.get("proxy") or None
+        else:
+            self.proxy = None
         self.client = self.get_session(config["common_timeout"])
 
     def __init_subclass__(cls, **kwargs):
@@ -176,7 +182,9 @@ class BaseParser:
         """获取重定向后的 URL, 单次重定向"""
 
         headers = headers or COMMON_HEADER.copy()
-        async with self.client.get(url, headers=headers, allow_redirects=False) as resp:
+        async with self.client.get(
+            url, headers=headers, allow_redirects=False, proxy=self.proxy
+        ) as resp:
             if resp.status >= 400:
                 raise ClientError(f"redirect check {resp.status} {resp.reason}")
             return resp.headers.get("Location", url)
@@ -188,7 +196,9 @@ class BaseParser:
     ) -> str:
         """获取重定向后的 URL, 允许多次重定向"""
         headers = headers or COMMON_HEADER.copy()
-        async with self.client.get(url, headers=headers, allow_redirects=True) as resp:
+        async with self.client.get(
+            url, headers=headers, allow_redirects=True, proxy=self.proxy
+        ) as resp:
             if resp.status >= 400:
                 raise ClientError(f"final url check {resp.status} {resp.reason}")
             return str(resp.url)

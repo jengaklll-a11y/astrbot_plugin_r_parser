@@ -112,7 +112,7 @@ class Downloader:
 
         try:
             async with self.client.get(
-                url, headers=headers, allow_redirects=True
+                url, headers=headers, allow_redirects=True, proxy=self.proxy
             ) as response:
                 if response.status >= 400:
                     raise ClientError(

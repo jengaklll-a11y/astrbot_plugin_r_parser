@@ -116,6 +116,7 @@ class YouTubeParser(BaseParser):
             url,
             json=payload,
             headers=self.headers,
+            proxy=self.proxy,
         ) as resp:
             if resp.status >= 400:
                 raise ClientError(f"YouTube browse API {resp.status} {resp.reason}")
