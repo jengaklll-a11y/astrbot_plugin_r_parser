@@ -65,6 +65,9 @@ class EmojiLikeArbiter:
                     "ts": event_time,
                 }
             )
+            logger.debug(
+                f"贴表情监听：用户({user_id})给消息({message_id})贴了表情({emoji_id})"
+            )
 
     async def compete(
         self,
@@ -131,7 +134,7 @@ class EmojiLikeArbiter:
             winner = min(records, key=lambda r: r["emoji_id"])
 
             logger.debug(
-                f"链接消息（{message_id}）仲裁赢家：{winner['user_id']}。贴表情ID：{winner['emoji_id']}",
+                f"链接消息（{message_id}）的仲裁赢家为：{winner['user_id']}。表情ID：{winner['emoji_id']}",
             )
 
             self._locks.add(message_id)

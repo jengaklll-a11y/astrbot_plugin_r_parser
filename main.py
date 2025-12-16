@@ -142,7 +142,8 @@ class ParserPlugin(Star):
         ]
         # 长关键词优先
         patterns.sort(key=lambda x: -len(x[0]))
-        logger.debug(f"关键词-正则对已生成：{patterns}")
+        keywords = [kw for kw, _ in patterns]
+        logger.debug(f"关键词-正则对已生成：{keywords}")
         self.key_pattern_list = patterns
 
     def get_parser_by_type(self, parser_type):
@@ -225,8 +226,8 @@ class ParserPlugin(Star):
 
         # 监听贴表情事件
         if isinstance(event, AiocqhttpMessageEvent):
-            raw_message: dict[str, Any] = event.message_obj.raw_message.__dict__
-            self.arbiter.record_like(raw_message)
+            raw_message = event.message_obj.raw_message
+            self.arbiter.record_like(raw_message)# type: ignore
 
         # 消息链
         chain = event.get_messages()
@@ -276,6 +277,7 @@ class ParserPlugin(Star):
                 message_id=int(event.message_obj.message_id),
                 self_id=int(self_id),
             )
+            logger.debug(f"仲裁结果: {is_win}")
             if not is_win:
                 return
 
