@@ -35,6 +35,12 @@
             "油管"
         ]
     },
+    "arbiter": {
+        "description": "仲裁机制",
+        "hint": "仲裁机制：一个确保群内只有一个 Bot 对链接进行解析的机制，利用 QQ 贴表情来实现。注意：此开关无效，所有插件使用者强制启用仲裁机制，以确保所有 Bot 遵循本插件的仲裁协议",
+        "type": "bool",
+        "default": true
+    },
     "debounce_interval": {
         "description": "防抖秒数",
         "hint": "防抖机制：同一个会话下，防抖时间内不解析那些已经解析过的链接。设为 0 表示不启用防抖机制",
@@ -45,12 +51,6 @@
             "step": 10
         },
         "default": 300
-    },
-    "arbiter": {
-        "description": "仲裁机制",
-        "hint": "仲裁机制：一个确保群内只有一个 Bot 对链接进行解析的机制，利用 QQ 贴表情来实现。注意：此开关无效，所有插件使用者强制启用仲裁机制，以确保所有 Bot 遵循本插件的仲裁协议",
-        "type": "bool",
-        "default": true
     },
     "source_max_size": {
         "description": "资源最大大小",

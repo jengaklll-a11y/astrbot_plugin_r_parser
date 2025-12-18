@@ -285,16 +285,12 @@ class ParserPlugin(Star):
             return
         logger.debug(f"匹配结果: {keyword}, {searched}")
 
-        # 防抖机制：避免短时间重复处理同一链接
-        link = searched.group(0)
-        if self.config["debounce_interval"] and self.debouncer.hit(umo, link):
-            logger.warning(f"[防抖] 链接 {link} 在防抖时间内，跳过解析")
-            return
-
-        # 仲裁机制：谁贴的表情ID值最小，谁来解析
+        # 仲裁机制
         if isinstance(event, AiocqhttpMessageEvent):
             raw = event.message_obj.raw_message
-            assert isinstance(raw, dict)
+            if not isinstance(raw, dict):
+                logger.warning(f"Unexpected raw_message type: {type(raw)}")
+                return
             is_win = await self.arbiter.compete(
                 bot=event.bot,
                 ctx=ArbiterContext(
@@ -307,6 +303,12 @@ class ParserPlugin(Star):
                 logger.info("Bot在仲裁中输了, 跳过解析")
                 return
             logger.info("Bot在仲裁中胜出, 准备解析...")
+
+        # 防抖机制：避免短时间重复处理同一链接
+        link = searched.group(0)
+        if self.config["debounce_interval"] and self.debouncer.hit(umo, link):
+            logger.warning(f"[防抖] 链接 {link} 在防抖时间内，跳过解析")
+            return
 
         # 耗时任务：解析+渲染+合并+发送
         task = asyncio.create_task(self.job(event, keyword, searched))
