@@ -156,11 +156,11 @@ class BilibiliParser(BaseParser):
                 raise DurationLimitException
             if a_url is not None:
                 return await self.downloader.download_av_and_merge(
-                    v_url, a_url, output_path=output_path, ext_headers=self.headers
+                    v_url, a_url, output_path=output_path, ext_headers=self.headers, proxy=self.proxy
                 )
             else:
                 return await self.downloader.streamd(
-                    v_url, file_name=output_path.name, ext_headers=self.headers
+                    v_url, file_name=output_path.name, ext_headers=self.headers, proxy=self.proxy
                 )
 
         video_task = asyncio.create_task(download_video())
@@ -201,7 +201,7 @@ class BilibiliParser(BaseParser):
         # 下载图片
         contents: list[MediaContent] = []
         for image_url in dynamic_info.image_urls:
-            img_task = self.downloader.download_img(image_url, ext_headers=self.headers)
+            img_task = self.downloader.download_img(image_url, ext_headers=self.headers, proxy=self.proxy)
             contents.append(ImageContent(img_task))
 
         return self.result(
@@ -291,13 +291,13 @@ class BilibiliParser(BaseParser):
         contents: list[MediaContent] = []
         # 下载封面
         if cover := room_data.cover:
-            cover_task = self.downloader.download_img(cover, ext_headers=self.headers)
+            cover_task = self.downloader.download_img(cover, ext_headers=self.headers, proxy=self.proxy)
             contents.append(ImageContent(cover_task))
 
         # 下载关键帧
         if keyframe := room_data.keyframe:
             keyframe_task = self.downloader.download_img(
-                keyframe, ext_headers=self.headers
+                keyframe, ext_headers=self.headers, proxy=self.proxy
             )
             contents.append(ImageContent(keyframe_task))
 

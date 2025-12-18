@@ -86,6 +86,7 @@ class Downloader:
         *,
         file_name: str | None = None,
         ext_headers: dict[str, str] | None = None,
+        proxy: str | None | object = ...,
     ) -> Path:
         """download file by url with stream
 
@@ -93,6 +94,7 @@ class Downloader:
             url (str): url address
             file_name (str | None): file name. Defaults to generate_file_name.
             ext_headers (dict[str, str] | None): ext headers. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
 
         Returns:
             Path: file path
@@ -109,10 +111,14 @@ class Downloader:
             return file_path
 
         headers = {**self.headers, **(ext_headers or {})}
+        
+        # Use sentinel value to detect if proxy was explicitly passed
+        if proxy is ...:
+            proxy = self.proxy
 
         try:
             async with self.client.get(
-                url, headers=headers, allow_redirects=True, proxy=self.proxy
+                url, headers=headers, allow_redirects=True, proxy=proxy
             ) as response:
                 if response.status >= 400:
                     raise ClientError(
@@ -172,6 +178,7 @@ class Downloader:
         ext_headers: dict[str, str] | None = None,
         use_ytdlp: bool = False,
         cookiefile: Path | None = None,
+        proxy: str | None | object = ...,
     ) -> Path:
         """download video file by url with stream
 
@@ -181,6 +188,7 @@ class Downloader:
             ext_headers (dict[str, str] | None): ext headers. Defaults to None.
             use_ytdlp (bool): use ytdlp to download video. Defaults to False.
             cookiefile (Path | None): cookie file path. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
 
         Returns:
             Path: video file path
@@ -193,7 +201,7 @@ class Downloader:
 
         if video_name is None:
             video_name = generate_file_name(url, ".mp4")
-        return await self.streamd(url, file_name=video_name, ext_headers=ext_headers)
+        return await self.streamd(url, file_name=video_name, ext_headers=ext_headers, proxy=proxy)
 
     @auto_task
     async def download_audio(
@@ -204,6 +212,7 @@ class Downloader:
         ext_headers: dict[str, str] | None = None,
         use_ytdlp: bool = False,
         cookiefile: Path | None = None,
+        proxy: str | None | object = ...,
     ) -> Path:
         """download audio file by url with stream
 
@@ -211,6 +220,7 @@ class Downloader:
             url (str): url address
             audio_name (str | None ): audio name. Defaults to generate from url.
             ext_headers (dict[str, str] | None): ext headers. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
 
         Returns:
             Path: audio file path
@@ -223,7 +233,7 @@ class Downloader:
 
         if audio_name is None:
             audio_name = generate_file_name(url, ".mp3")
-        return await self.streamd(url, file_name=audio_name, ext_headers=ext_headers)
+        return await self.streamd(url, file_name=audio_name, ext_headers=ext_headers, proxy=proxy)
 
     @auto_task
     async def download_file(
@@ -232,11 +242,22 @@ class Downloader:
         *,
         file_name: str | None = None,
         ext_headers: dict[str, str] | None = None,
+        proxy: str | None | object = ...,
     ) -> Path:
-        """download file by url with stream"""
+        """download file by url with stream
+        
+        Args:
+            url (str): url address
+            file_name (str | None): file name. Defaults to None.
+            ext_headers (dict[str, str] | None): ext headers. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
+
+        Returns:
+            Path: file path
+        """
         if file_name is None:
             file_name = generate_file_name(url, ".zip")
-        return await self.streamd(url, file_name=file_name, ext_headers=ext_headers)
+        return await self.streamd(url, file_name=file_name, ext_headers=ext_headers, proxy=proxy)
 
     @auto_task
     async def download_img(
@@ -245,6 +266,7 @@ class Downloader:
         *,
         img_name: str | None = None,
         ext_headers: dict[str, str] | None = None,
+        proxy: str | None | object = ...,
     ) -> Path:
         """download image file by url with stream
 
@@ -252,6 +274,7 @@ class Downloader:
             url (str): url
             img_name (str | None): image name. Defaults to generate from url.
             ext_headers (dict[str, str] | None): ext headers. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
 
         Returns:
             Path: image file path
@@ -261,25 +284,27 @@ class Downloader:
         """
         if img_name is None:
             img_name = generate_file_name(url, ".jpg")
-        return await self.streamd(url, file_name=img_name, ext_headers=ext_headers)
+        return await self.streamd(url, file_name=img_name, ext_headers=ext_headers, proxy=proxy)
 
     async def download_imgs_without_raise(
         self,
         urls: list[str],
         *,
         ext_headers: dict[str, str] | None = None,
+        proxy: str | None | object = ...,
     ) -> list[Path]:
         """download images without raise
 
         Args:
             urls (list[str]): urls
             ext_headers (dict[str, str] | None): ext headers. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
 
         Returns:
             list[Path]: image file paths
         """
         paths_or_errs = await asyncio.gather(
-            *[self.download_img(url, ext_headers=ext_headers) for url in urls],
+            *[self.download_img(url, ext_headers=ext_headers, proxy=proxy) for url in urls],
             return_exceptions=True,
         )
         return [p for p in paths_or_errs if isinstance(p, Path)]
@@ -292,11 +317,23 @@ class Downloader:
         *,
         output_path: Path,
         ext_headers: dict[str, str] | None = None,
+        proxy: str | None | object = ...,
     ) -> Path:
-        """download video and audio file by url with stream and merge"""
+        """download video and audio file by url with stream and merge
+        
+        Args:
+            v_url (str): video url
+            a_url (str): audio url
+            output_path (Path): output file path
+            ext_headers (dict[str, str] | None): ext headers. Defaults to None.
+            proxy (str | None): proxy URL. Defaults to configured proxy. Use None to disable proxy.
+
+        Returns:
+            Path: merged file path
+        """
         v_path, a_path = await asyncio.gather(
-            self.download_video(v_url, ext_headers=ext_headers),
-            self.download_audio(a_url, ext_headers=ext_headers),
+            self.download_video(v_url, ext_headers=ext_headers, proxy=proxy),
+            self.download_audio(a_url, ext_headers=ext_headers, proxy=proxy),
         )
         await merge_av(v_path=v_path, a_path=a_path, output_path=output_path)
         return output_path

@@ -212,7 +212,7 @@ class BaseParser:
         avatar_task = None
         if avatar_url:
             avatar_task = self.downloader.download_img(
-                avatar_url, ext_headers=self.headers
+                avatar_url, ext_headers=self.headers, proxy=self.proxy
             )
         return Author(name=name, avatar=avatar_task, description=description)
 
@@ -226,11 +226,11 @@ class BaseParser:
         cover_task = None
         if cover_url:
             cover_task = self.downloader.download_img(
-                cover_url, ext_headers=self.headers
+                cover_url, ext_headers=self.headers, proxy=self.proxy
             )
         if isinstance(url_or_task, str):
             url_or_task = self.downloader.download_video(
-                url_or_task, ext_headers=self.headers
+                url_or_task, ext_headers=self.headers, proxy=self.proxy
             )
 
         return VideoContent(url_or_task, cover_task, duration)
@@ -242,7 +242,7 @@ class BaseParser:
         """创建图片内容列表"""
         contents: list[ImageContent] = []
         for url in image_urls:
-            task = self.downloader.download_img(url, ext_headers=self.headers)
+            task = self.downloader.download_img(url, ext_headers=self.headers, proxy=self.proxy)
             contents.append(ImageContent(task))
         return contents
 
@@ -253,7 +253,7 @@ class BaseParser:
         """创建动态图片内容列表"""
         contents: list[DynamicContent] = []
         for url in dynamic_urls:
-            task = self.downloader.download_video(url, ext_headers=self.headers)
+            task = self.downloader.download_video(url, ext_headers=self.headers, proxy=self.proxy)
             contents.append(DynamicContent(task))
         return contents
 
@@ -265,7 +265,7 @@ class BaseParser:
         """创建音频内容"""
         if isinstance(url_or_task, str):
             url_or_task = self.downloader.download_audio(
-                url_or_task, ext_headers=self.headers
+                url_or_task, ext_headers=self.headers, proxy=self.proxy
             )
 
         return AudioContent(url_or_task, duration)
@@ -277,7 +277,7 @@ class BaseParser:
         alt: str | None = None,
     ):
         """创建图文内容 图片不能为空 文字可空 渲染时文字在前 图片在后"""
-        image_task = self.downloader.download_img(image_url, ext_headers=self.headers)
+        image_task = self.downloader.download_img(image_url, ext_headers=self.headers, proxy=self.proxy)
         return GraphicsContent(image_task, text, alt)
 
     def create_file_content(
@@ -288,7 +288,7 @@ class BaseParser:
         """创建文件内容"""
         if isinstance(url_or_task, str):
             url_or_task = self.downloader.download_file(
-                url_or_task, ext_headers=self.headers, file_name=name
+                url_or_task, ext_headers=self.headers, file_name=name, proxy=self.proxy
             )
 
         return FileContent(url_or_task)
