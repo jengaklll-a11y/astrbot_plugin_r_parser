@@ -1,4 +1,3 @@
-
 import asyncio
 import uuid
 from collections.abc import Awaitable, Callable
@@ -8,6 +7,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import ClassVar, ParamSpec, TypeVar
 
+import aiofiles
 from apilmoji import Apilmoji, EmojiCDNSource
 from apilmoji.core import get_font_height
 from PIL import Image, ImageDraw, ImageFont
@@ -344,7 +344,6 @@ class Renderer:
         alpha = alpha.point(lambda x: int(x * 0.3))  # 将透明度设置为 30%
         cls.video_button_image.putalpha(alpha)
 
-
     @classmethod
     def _load_platform_logos(cls) -> None:
         cls.platform_logos = {}
@@ -429,9 +428,14 @@ class Renderer:
             img = await self._create_card_image(result)
             buf = BytesIO()
             await asyncio.to_thread(img.save, buf, format="PNG")
-            cache.write_bytes(buf.getvalue())
+
+            async with aiofiles.open(cache, "wb") as fp:
+                await fp.write(buf.getvalue())
             return cache
         except Exception:
+            logger.error(
+                f"Failed to render card for result={result}",
+            )
             return None
 
     @suppress_exception
