@@ -80,9 +80,15 @@
         "type": "bool",
         "default": true
     },
+    "single_heavy_render_card": {
+        "description": "单条重媒体仍渲染卡片",
+        "hint": "重媒体是指：视频、音频、文件。重媒体下载和发送较为耗时，有需者可以打开此开关让插件先渲染一个信息卡片发出来，追求简洁者请不要开启",
+        "type": "bool",
+        "default": false
+    },
     "forward_threshold": {
         "description": "转发阈值",
-        "hint": "解析生成的消息条数达到此阈值时，将消息合并转发， 设为 0 表示不启用合并转发功能",
+        "hint": "硬性要求：解析生成的消息条数达到此阈值时，将消息合并转发",
         "type": "int",
         "slider": {
             "min": 0,
@@ -90,12 +96,6 @@
             "step": 1
         },
         "default": 2
-    },
-    "simple_mode": {
-        "description": "简洁模式",
-        "hint": "简洁模式下，当解析出视频、音频、文件后，不再进一步渲染信息卡片",
-        "type": "bool",
-        "default": true
     },
     "download_timeout": {
         "description": "下载请求超时秒数",

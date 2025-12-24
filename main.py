@@ -85,9 +85,6 @@ class ParserPlugin(Star):
         # 仲裁器
         self.arbiter = EmojiLikeArbiter()
 
-        # 会话 -> 正在运行的解析任务
-        self.running_tasks: dict[str, asyncio.Task] = {}
-
         # 缓存清理器
         self.cleaner = CacheCleaner(self.context, self.config)
 
@@ -114,12 +111,6 @@ class ParserPlugin(Star):
 
     async def terminate(self):
         """插件卸载时触发"""
-        # 取消所有解析任务
-        for task in list(self.running_tasks.values()):
-            if not task.done():
-                task.cancel()
-        await asyncio.gather(*self.running_tasks.values(), return_exceptions=True)
-        self.running_tasks.clear()
         # 关下载器里的会话
         await self.downloader.close()
         # 关所有解析器里的会话 (去重后的实例)
@@ -166,16 +157,66 @@ class ParserPlugin(Star):
                 return parser
         raise ValueError(f"未找到类型为 {parser_type} 的 parser 实例")
 
-    async def _make_messages(self, result: ParseResult) -> list[BaseMessageComponent]:
-        """组装消息"""
-        segs: list[BaseMessageComponent] = []
+    def _build_send_plan(self, result: ParseResult):
+        light_contents = []
+        heavy_contents = []
 
-        # 1. 获取媒体内容
         for cont in chain(
             result.contents, result.repost.contents if result.repost else ()
         ):
+            match cont:
+                case ImageContent() | GraphicsContent():
+                    light_contents.append(cont)
+                case VideoContent() | AudioContent() | FileContent() | DynamicContent():
+                    heavy_contents.append(cont)
+                case _:
+                    light_contents.append(cont)
+
+        heavy_count = len(heavy_contents)
+        light_count = len(light_contents)
+
+        base_seg_count = heavy_count + light_count
+
+        is_single_heavy = heavy_count == 1 and light_count == 0
+
+        render_card = is_single_heavy and self.config.get(
+            "single_heavy_render_card", False
+        )
+
+        final_seg_count = base_seg_count + (1 if render_card else 0)
+        force_merge = final_seg_count >= self.config["forward_threshold"]
+
+        return {
+            "light": light_contents,
+            "heavy": heavy_contents,
+            "render_card": render_card,
+            "force_merge": force_merge,
+            "preview_card": render_card and not force_merge,
+        }
+
+    async def _send_parse_result(
+        self,
+        event: AstrMessageEvent,
+        result: ParseResult,
+    ):
+        plan = self._build_send_plan(result)
+
+        segs: list[BaseMessageComponent] = []
+
+        # 预览卡片（单重媒体 + 不合并）
+        if plan["preview_card"]:
+            if image_path := await self.renderer.render_card(result):
+                await event.send(event.chain_result([Image(str(image_path))]))
+
+        # inline 卡片（合并时）
+        if plan["render_card"] and plan["force_merge"]:
+            if image_path := await self.renderer.render_card(result):
+                segs.append(Image(str(image_path)))
+
+        # 轻媒体
+        for cont in plan["light"]:
             try:
-                path = await cont.get_path()
+                path: Path = await cont.get_path()
             except (DownloadLimitException, ZeroSizeException):
                 continue
             except DownloadException:
@@ -183,16 +224,6 @@ class ParserPlugin(Star):
                 continue
 
             match cont:
-                case FileContent():
-                    segs.append(File(name=path.name, file=str(path)))
-                case VideoContent() | DynamicContent():
-                    segs.append(Video(str(path)))
-                case AudioContent():
-                    segs.append(
-                        File(name=path.name, file=str(path))
-                        if self.config["audio_to_file"]
-                        else Record(str(path))
-                    )
                 case ImageContent():
                     segs.append(Image(str(path)))
                 case GraphicsContent() as g:
@@ -202,15 +233,37 @@ class ParserPlugin(Star):
                     if g.alt:
                         segs.append(Plain(g.alt))
 
-        # 2. 生成卡片
-        if not (
-            self.config["simple_mode"]
-            and any(isinstance(seg, Video | Record | File) for seg in segs)
-        ):
-            if image_path := await self.renderer.render_card(result):
-                segs.insert(0, Image(str(image_path)))
+        # 重媒体
+        for cont in plan["heavy"]:
+            try:
+                path: Path = await cont.get_path()
+            except DownloadException:
+                segs.append(Plain("此项媒体下载失败"))
+                continue
 
-        return segs
+            match cont:
+                case VideoContent() | DynamicContent():
+                    segs.append(Video(str(path)))
+                case AudioContent():
+                    segs.append(
+                        File(name=path.name, file=str(path))
+                        if self.config["audio_to_file"]
+                        else Record(str(path))
+                    )
+                case FileContent():
+                    segs.append(File(name=path.name, file=str(path)))
+
+        # 强制合并
+        if plan["force_merge"] and segs:
+            nodes = Nodes([])
+            self_id = event.get_self_id()
+            for seg in segs:
+                nodes.nodes.append(Node(uin=self_id, name="解析器", content=[seg]))
+            segs = [nodes]
+
+        # 发送
+        if segs:
+            await event.send(event.chain_result(segs))
 
     @filter.event_message_type(filter.EventMessageType.ALL)
     async def on_message(self, event: AstrMessageEvent):
@@ -281,39 +334,11 @@ class ParserPlugin(Star):
             logger.warning(f"[防抖] 链接 {link} 在防抖时间内，跳过解析")
             return
 
-        # 耗时任务：解析+渲染+合并+发送
-        task = asyncio.create_task(self.job(event, keyword, searched))
-        self.running_tasks[umo] = task
-        try:
-            await task
-        except asyncio.CancelledError:
-            logger.debug(f"任务被取消 - {umo}")
-            return
-        finally:
-            self.running_tasks.pop(umo, None)
-
-    async def job(self, event: AstrMessageEvent, keyword: str, searched: re.Match[str]):
-        """一个耗时的任务包：解析+渲染+合并+发送"""
         # 解析
         parse_res = await self.parser_map[keyword].parse(keyword, searched)
-        # 渲染、组装消息
-        segs = await self._make_messages(parse_res)
-        # 合并
-        if len(segs) >= self.config["forward_threshold"]:
-            nodes = Nodes([])
-            self_id = event.get_self_id()
-            name = "解析器"
-            for seg in segs:
-                node = Node(uin=self_id, name=name, content=[seg])
-                nodes.nodes.append(node)
-            segs.clear()
-            segs.append(nodes)
+
         # 发送
-        if segs:
-            try:
-                await event.send(event.chain_result(segs))
-            except Exception as e:
-                logger.error(f"发送消息失败: {e}")
+        await self._send_parse_result(event, parse_res)
 
     @filter.permission_type(filter.PermissionType.ADMIN)
     @filter.command("bm")
