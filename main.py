@@ -207,7 +207,7 @@ class ParserPlugin(Star):
         plan = self._build_send_plan(result)
 
         segs: list[BaseMessageComponent] = []
-        show_download_fail_tip = self.config["show_download_fail_tip"]
+        show_download_fail_tip = self.config.get("show_download_fail_tip", True)
 
         # 预览卡片（单重媒体 + 不合并）
         if plan["preview_card"]:
