@@ -99,7 +99,7 @@
     },
     "show_download_fail_tip": {
         "description": "提示下载失败项",
-        "hint": "关闭后不再发送“此项媒体下载失败”提示",
+        "hint": "关闭后将不再发送与下载失败相关的提示（如“此项媒体下载失败”、“超过文件大小限制”等）",
         "type": "bool",
         "default": true
     },
