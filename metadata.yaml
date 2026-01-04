@@ -1,0 +1,6 @@
+name: astrbot_plugin_r_parser
+display_name: R-Parser (Core)
+desc: 全能链接解析插件，支持多平台解析，具备自动防抖及资源限制保护特性。
+version: 1.1.0
+author: jengaklll-a11y
+repo: https://github.com/jengaklll-a11y/astrbot_plugin_r_parser
