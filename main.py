@@ -47,6 +47,7 @@ from .core.exception import (
     DownloadException,
     DownloadLimitException,
     DurationLimitException,
+    ParseException,
     SizeLimitException,
     ZeroSizeException,
 )
@@ -253,22 +254,12 @@ class ParserPlugin(Star):
         if plan["force_merge"]:
             nodes = Nodes([])
             self_id = event.get_self_id()
-            
-            # --- 关键修改：将每个组件单独封装为一个 Node ---
-            # 这样在合并转发详情页里，每一张图片、每一个视频都会是独立的气泡
-            # 既解决了图片粘连问题，也解决了文件显示问题
+            # 修复：使用默认名称，避免 AttributeError
+            bot_name = "R-Parser"
             
             for seg in segs:
-                # 动态设置发送者名字，提升体验（可选）
-                node_name = "解析结果"
-                if isinstance(seg, File):
-                    node_name = "媒体文件"
-                elif isinstance(seg, Video):
-                    node_name = "视频"
-                elif isinstance(seg, Image):
-                    node_name = "图片"
-                
-                nodes.nodes.append(Node(uin=self_id, name=node_name, content=[seg]))
+                # 使用 Bot 名字作为发送者
+                nodes.nodes.append(Node(uin=self_id, name=bot_name, content=[seg]))
 
             await event.send(event.chain_result([nodes]))
         else:
@@ -363,8 +354,12 @@ class ParserPlugin(Star):
             await event.send(event.plain_result(f"⚠️ {e}"))
         except SizeLimitException as e:
             await event.send(event.plain_result(f"⚠️ {e}"))
+        except ParseException as e:
+            # 捕获解析异常，发送提示给用户
+            logger.warning(f"解析异常: {e}")
+            await event.send(event.plain_result(f"⚠️ {e}"))
         except Exception:
-            # 优化：使用 logger.exception 打印完整堆栈
+            # 捕获未知异常，打印堆栈
             logger.exception("解析过程中发生未知错误")
 
     # endregion
